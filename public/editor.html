@@ -52,11 +52,17 @@
   <!-- Ana Çalışma Alanı -->
   <main class="editor-workspace">
 
-    <!-- Sol Araç Paneli (Masaüstü) -->
-    <aside class="editor-sidebar">
+    <!-- Sol Araç Paneli (Masaüstü & Mobil Çekmece) -->
+    <aside class="editor-sidebar open">
       <button type="button" class="side-handle left-handle" id="btn-toggle-left-panel" title="Sol Süsleme Paneli Gizle/Göster">
         <span class="handle-icon">◀</span>
       </button>
+
+      <!-- Mobil Çekmece Başlığı ve Kapatma Butonu -->
+      <div class="mobile-drawer-header">
+        <span class="drawer-title" id="drawer-active-title">🍢 Tabela Dik</span>
+        <button type="button" class="btn-close-drawer" id="btn-close-mobile-drawer" title="Paneli Kapat">✕ Kapat</button>
+      </div>
 
       <div class="sidebar-tabs">
         <button class="sidebar-tab-btn active" data-target="tool-topper">🍢 Tabela</button>

@@ -116,7 +116,7 @@
         document.getElementById('badge-quota-info').textContent = `🎯 Kişi başı ${data.room.items_per_participant} Hak`;
 
         // Zaten kayıtlı token var mı kontrol et
-        const savedToken = localStorage.getItem(`room_token_${data.room.id}`);
+        const savedToken = localStorage.getItem(`room_token_${data.room.id}`) || localStorage.getItem(`room_token_${inviteCode}`);
         if (savedToken) {
           // Doğrudan editöre yönlendir
           window.location.href = `/editor.html?room=${inviteCode}`;
@@ -152,6 +152,7 @@
         const res = await api.joinRoom(inviteCode, nickname);
         if (res.token) {
           localStorage.setItem(`room_token_${res.room.id}`, res.token);
+          localStorage.setItem(`room_token_${inviteCode}`, res.token);
           localStorage.setItem(`participant_${res.room.id}`, JSON.stringify(res.participant));
         }
 

@@ -457,18 +457,49 @@
 }
 
 @media (max-width: 900px) {
+  .mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: var(--surface-alt);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .drawer-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+
+  .btn-close-drawer {
+    background: #FFF0F5;
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-soft);
+    cursor: pointer;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .editor-sidebar {
     position: fixed;
     bottom: 60px;
     left: 0;
     right: 0;
     width: 100%;
-    height: 48vh;
+    height: 52vh;
     border-right: none;
     border-top: 2px solid var(--border);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     transform: translateY(110%);
     box-shadow: 0 -10px 30px rgba(91, 75, 107, 0.15);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .editor-sidebar.open {

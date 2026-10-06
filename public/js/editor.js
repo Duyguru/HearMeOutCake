@@ -131,9 +131,18 @@ class CakeEditorApp {
   async loadRoomMode(inviteCode) {
     try {
       // Katılımcı token'ını localStorage'dan al
-      const roomStatus = await api.getRoomStatus(inviteCode);
-      const roomId = roomStatus.room.id;
-      const savedToken = localStorage.getItem(`room_token_${roomId}`);
+      let savedToken = localStorage.getItem(`room_token_${inviteCode}`);
+      let roomId = null;
+
+      try {
+        const roomStatus = await api.getRoomStatus(inviteCode);
+        if (roomStatus && roomStatus.room) {
+          roomId = roomStatus.room.id;
+          savedToken = savedToken || localStorage.getItem(`room_token_${roomId}`);
+        }
+      } catch (err) {
+        console.warn('Oda durumu alınırken hata (token araması):', err);
+      }
 
       if (!savedToken) {
         // Token yoksa önce join sayfasına yönlendir
@@ -232,9 +241,11 @@ class CakeEditorApp {
       });
     }
 
-    // Kilitli Pasta Durumu
+    // Kilitli Pasta Durumu & Yetki Kontrolleri
     const lockNotice = document.getElementById('lock-notice');
     const saveBtn = document.getElementById('btn-save-cake');
+    const deleteEntireBtn = document.getElementById('btn-delete-entire-cake');
+
     if (this.state.isLocked) {
       if (lockNotice) lockNotice.style.display = 'block';
       if (saveBtn) {
@@ -243,17 +254,32 @@ class CakeEditorApp {
       }
     } else {
       if (lockNotice) lockNotice.style.display = 'none';
-      if (saveBtn && !this.state.isCreator && this.state.cake && this.state.cake.mode === 'collab') {
-        saveBtn.style.display = 'none'; // Sadece creator kilitleyebilir
+      if (saveBtn) {
+        if (!this.state.isCreator && this.state.cake && this.state.cake.mode === 'collab') {
+          saveBtn.style.display = 'none'; // Sadece creator kilitleyebilir
+        } else {
+          saveBtn.style.display = '';
+        }
       }
     }
 
-    // Solo modda Dilim ve Boya sekmelerini göster, Collab modda gizle
+    if (deleteEntireBtn) {
+      if (!this.state.isCreator && this.state.cake && this.state.cake.mode === 'collab') {
+        deleteEntireBtn.style.display = 'none'; // Katılımcı tüm pastayı silemez
+      } else {
+        deleteEntireBtn.style.display = '';
+      }
+    }
+
+    // Solo modda Dilim sekmesini göster, Collab modda gizle
     const tabSlices = document.getElementById('tab-slices');
     const mobileTabSlices = document.getElementById('mobile-tab-slices');
     if (this.state.cake && this.state.cake.mode === 'collab') {
       if (tabSlices) tabSlices.style.display = 'none';
       if (mobileTabSlices) mobileTabSlices.style.display = 'none';
+    } else {
+      if (tabSlices) tabSlices.style.display = '';
+      if (mobileTabSlices) mobileTabSlices.style.display = '';
     }
   }
 
@@ -269,6 +295,9 @@ class CakeEditorApp {
   // ============================================================
 
   bindEvents() {
+    const sidebar = document.querySelector('.editor-sidebar');
+    const drawerTitle = document.getElementById('drawer-active-title');
+
     // Sekme Butonları (Araçlar / Sticker / Renkler)
     document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -278,21 +307,41 @@ class CakeEditorApp {
         const target = btn.dataset.target;
         const section = document.getElementById(target);
         if (section) section.classList.add('active');
+
+        if (drawerTitle) {
+          drawerTitle.textContent = btn.textContent.trim();
+        }
+
+        document.querySelectorAll('.mobile-nav-btn').forEach(mb => {
+          if (mb.dataset.tab === target) {
+            mb.classList.add('active');
+          } else {
+            mb.classList.remove('active');
+          }
+        });
       });
     });
 
     // Mobil Alt Gezinme Butonları
     document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const sidebar = document.querySelector('.editor-sidebar');
         const targetTab = btn.dataset.tab;
         if (targetTab) {
           const tabBtn = document.querySelector(`.sidebar-tab-btn[data-target="${targetTab}"]`);
           if (tabBtn) tabBtn.click();
-          sidebar.classList.toggle('open');
+          if (sidebar) {
+            sidebar.classList.add('open');
+          }
         }
       });
     });
+
+    const btnCloseDrawer = document.getElementById('btn-close-mobile-drawer');
+    if (btnCloseDrawer && sidebar) {
+      btnCloseDrawer.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+      });
+    }
 
     // SVG Canvas Pointer Olayları (Sürükleme, Döndürme, Boyutlandırma)
     this.svgElement.addEventListener('pointerdown', (e) => this.handlePointerDown(e));
