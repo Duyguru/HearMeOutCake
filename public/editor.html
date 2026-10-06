@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pasta Editörü 🎂 — Hear Me Out Cake</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/editor.css">
+</head>
+<body class="editor-layout">
+
+  <!-- Üst Gezinme Çubuğu -->
+  <header class="editor-nav">
+    <div class="nav-left">
+      <a href="/" class="btn-icon" title="Ana Sayfaya Dön">‹</a>
+      <div class="nav-title-group">
+        <h1 class="nav-title" id="nav-cake-title">Hear Me Out Cake</h1>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 2px;">
+          <span class="badge" id="badge-mode">🍰 Solo Mod</span>
+          <span class="badge badge-quota" id="badge-quota" style="display: none;">3/3 Ekleme Hakkı</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn btn-secondary btn-undo-redo" id="btn-undo" type="button" title="Son İşlemi Geri Al (Ctrl+Z)" disabled>
+        <span>↶</span> <span>Geri Al</span>
+      </button>
+      <button class="btn btn-secondary btn-undo-redo" id="btn-redo" type="button" title="Geri Alınan İşlemi İleri Al (Ctrl+Y)" disabled>
+        <span>↷</span> <span>İleri Al</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-toggle-focus" type="button" title="Panelleri Gizle / Göster">
+        <span>👁️</span> <span class="hide-mobile" id="lbl-toggle-focus">Panelleri Gizle</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-share-cake" type="button" title="Bağlantıyı Paylaş">
+        <span>🔗</span> <span class="hide-mobile">Paylaş</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-export-png" type="button" title="PNG Olarak İndir">
+        <span>📸</span> <span class="hide-mobile">PNG İndir</span>
+      </button>
+      <button class="btn btn-primary" id="btn-save-cake" type="button" title="Pastayı Tamamla ve Kilitle">
+        <span>🔒</span> <span class="hide-mobile">Kaydet</span>
+      </button>
+      <button class="btn btn-danger" id="btn-delete-entire-cake" type="button" title="Bu Pastayı Sil" style="min-width: 44px; padding: 0.5rem 0.75rem;">
+        <span>🗑️</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Ana Çalışma Alanı -->
+  <main class="editor-workspace">
+
+    <!-- Sol Araç Paneli (Masaüstü) -->
+    <aside class="editor-sidebar">
+      <button type="button" class="side-handle left-handle" id="btn-toggle-left-panel" title="Sol Süsleme Paneli Gizle/Göster">
+        <span class="handle-icon">◀</span>
+      </button>
+
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab-btn active" data-target="tool-topper">🍢 Tabela</button>
+        <button class="sidebar-tab-btn" data-target="tool-stickers">✨ Süsler</button>
+        <button class="sidebar-tab-btn" data-target="tool-text">📝 Yazı</button>
+        <button class="sidebar-tab-btn" data-target="tool-colors">🎨 Renk</button>
+        <button class="sidebar-tab-btn" data-target="tool-paint">🖌️ Boya</button>
+        <button class="sidebar-tab-btn" data-target="tool-slices" id="tab-slices">🔪 Dilim</button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- 1. KÜRDANLI TABELA ARACI -->
+        <div class="tool-section active" id="tool-topper">
+          <div class="topper-creator-card">
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem;">📍 Kürdanlı Tabela Dik</h3>
+            <p class="text-soft" style="font-size: 0.86rem; margin-bottom: 1rem;">
+              Resmin altına istediğin ismi yaz, kürdanlı tabela gibi pastana saplayalım!
+            </p>
+
+            <div class="upload-dropzone" id="dropzone-topper">
+              <span style="font-size: 1.8rem; display: block; margin-bottom: 0.3rem;">📸</span>
+              <span style="font-weight: 700; font-size: 0.95rem; color: var(--accent);">Fotoğraf Seç</span>
+              <p class="text-soft" style="font-size: 0.78rem; margin-top: 2px;">(PNG, JPEG veya WEBP)</p>
+              <input type="file" id="input-topper-file" accept="image/*" style="display: none;">
+            </div>
+
+            <div class="upload-preview-box" id="preview-topper" style="display:none; text-align:center;">
+              <p class="text-soft" style="font-size:0.8rem; margin-bottom:0.4rem; font-weight:700;">🖼️ Resim Konum ve Boyut Ayarı</p>
+              <div id="preview-crop-frame" style="width: 116px; height: 92px; margin: 0 auto; border-radius: 8px; overflow: hidden; position: relative; background: #FFF5F8; border: 2px dashed #FF8FB1;">
+                <img id="preview-img-topper" src="" alt="Önizleme" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); max-width: none; transform-origin: center center; transition: transform 0.05s ease;">
+              </div>
+              <div class="image-adjust-panel" style="margin-top: 0.75rem; background: #FFF9FB; border: 1px solid #F2D9E2; border-radius: 10px; padding: 0.6rem 0.8rem; font-size: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                  <span style="font-weight: 700; color: #5B4B6B;">🔍 Boyut:</span>
+                  <input type="range" id="topper-scale" min="0.4" max="2.5" step="0.05" value="1.0" style="width: 110px;">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                  <span style="font-weight: 700; color: #5B4B6B;">↔️ Sağ / Sol:</span>
+                  <input type="range" id="topper-pos-x" min="-60" max="60" step="1" value="0" style="width: 110px;">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                  <span style="font-weight: 700; color: #5B4B6B;">↕️ Yukarı / Aşağı:</span>
+                  <input type="range" id="topper-pos-y" min="-60" max="60" step="1" value="0" style="width: 110px;">
+                </div>
+                <button type="button" class="btn btn-ghost" id="btn-reset-topper-img" style="padding: 2px 8px; font-size: 0.76rem; width: 100%; margin-top: 0.2rem;">
+                  Ayarları Sıfırla 🔄
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group" style="text-align: left;">
+              <label class="form-label" for="input-topper-caption" style="font-size: 0.88rem;">Tabeladaki İsim / Yazı</label>
+              <input type="text" id="input-topper-caption" class="input-text" placeholder="Örn: Shrek, Ryan Gosling..." maxlength="30">
+            </div>
+
+            <button class="btn btn-primary" id="btn-add-topper" style="width: 100%;">
+              Pastaya Dik 📍
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. STICKER ARACI -->
+        <div class="tool-section" id="tool-stickers">
+          <p class="text-soft" style="font-size: 0.88rem; margin-bottom: 1rem;">
+            Pastanı tatlı süslerle zenginleştir:
+          </p>
+          <div class="stickers-grid">
+            <div class="sticker-item" data-sticker="strawberry" title="Çilek">
+              <img src="/assets/stickers/strawberry.svg" alt="Çilek">
+            </div>
+            <div class="sticker-item" data-sticker="candle" title="Mum">
+              <img src="/assets/stickers/candle.svg" alt="Mum">
+            </div>
+            <div class="sticker-item" data-sticker="cherry" title="Kiraz">
+              <img src="/assets/stickers/cherry.svg" alt="Kiraz">
+            </div>
+            <div class="sticker-item" data-sticker="star" title="Yıldız">
+              <img src="/assets/stickers/star.svg" alt="Yıldız">
+            </div>
+            <div class="sticker-item" data-sticker="heart" title="Kalp">
+              <img src="/assets/stickers/heart.svg" alt="Kalp">
+            </div>
+            <div class="sticker-item" data-sticker="ribbon" title="Kurdele">
+              <img src="/assets/stickers/ribbon.svg" alt="Kurdele">
+            </div>
+            <div class="sticker-item" data-sticker="flower" title="Çiçek">
+              <img src="/assets/stickers/flower.svg" alt="Çiçek">
+            </div>
+            <div class="sticker-item" data-sticker="sparkle" title="Işıltı">
+              <img src="/assets/stickers/sparkle.svg" alt="Işıltı">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. YAZI ARACI -->
+        <div class="tool-section" id="tool-text">
+          <div class="form-group">
+            <label class="form-label" for="input-cake-text">Pastaya Yazı Ekle</label>
+            <input type="text" id="input-cake-text" class="input-text" placeholder="Örn: Mutlu Yıllar!" maxlength="35">
+          </div>
+          <button class="btn btn-primary" id="btn-add-text" style="width: 100%;">
+            Yazıyı Ekle ✨
+          </button>
+        </div>
+
+        <!-- 4. RENK ARACI -->
+        <div class="tool-section" id="tool-colors">
+          <div class="step-section">
+            <label class="step-section-title"><span>🎨</span> Pasta Rengi</label>
+            <div class="color-swatches" id="editor-swatches-cake">
+              <button type="button" class="color-swatch active" data-color="#FFD6E0" style="background:#FFD6E0;" title="Çilek Pembesi"></button>
+              <button type="button" class="color-swatch" data-color="#FFE5D0" style="background:#FFE5D0;" title="Şeftali"></button>
+              <button type="button" class="color-swatch" data-color="#FFF6C9" style="background:#FFF6C9;" title="Vanilya"></button>
+              <button type="button" class="color-swatch" data-color="#D4F5E3" style="background:#D4F5E3;" title="Nane"></button>
+              <button type="button" class="color-swatch" data-color="#D6EBFF" style="background:#D6EBFF;" title="Gök Mavisi"></button>
+              <button type="button" class="color-swatch" data-color="#E6DBFF" style="background:#E6DBFF;" title="Lavanta"></button>
+              <button type="button" class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;" title="Krem Beyaz"></button>
+              <button type="button" class="color-swatch" data-color="#7B5E43" style="background:#7B5E43;" title="Çikolata"></button>
+              <button type="button" class="color-swatch" data-color="#FF6B6B" style="background:#FF6B6B;" title="Kırmızı"></button>
+              <button type="button" class="color-swatch" data-color="#FFA94D" style="background:#FFA94D;" title="Turuncu"></button>
+              <button type="button" class="color-swatch" data-color="#51CF66" style="background:#51CF66;" title="Yeşil"></button>
+              <button type="button" class="color-swatch" data-color="#339AF0" style="background:#339AF0;" title="Mavi"></button>
+              <button type="button" class="color-swatch" data-color="#845EF7" style="background:#845EF7;" title="Mor"></button>
+              <button type="button" class="color-swatch" data-color="#2C2C2C" style="background:#2C2C2C;" title="Siyah"></button>
+            </div>
+            <div class="custom-color-row">
+              <label class="custom-color-label" for="custom-cake-color">Özel renk seç:</label>
+              <input type="color" id="custom-cake-color" class="custom-color-input" value="#FFD6E0">
+            </div>
+          </div>
+          <div class="step-section" style="margin-top: 1.5rem;">
+            <label class="step-section-title"><span>🧁</span> Krema Rengi</label>
+            <div class="color-swatches" id="editor-swatches-frosting">
+              <button type="button" class="color-swatch active" data-color="#FFF1E6" style="background:#FFF1E6;" title="Krema"></button>
+              <button type="button" class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;" title="Beyaz"></button>
+              <button type="button" class="color-swatch" data-color="#FFB3C6" style="background:#FFB3C6;" title="Koyu Pembe"></button>
+              <button type="button" class="color-swatch" data-color="#D6EBFF" style="background:#D6EBFF;" title="Açık Mavi"></button>
+              <button type="button" class="color-swatch" data-color="#553A26" style="background:#553A26;" title="Kakaolu"></button>
+              <button type="button" class="color-swatch" data-color="#FF6B6B" style="background:#FF6B6B;" title="Kırmızı"></button>
+              <button type="button" class="color-swatch" data-color="#FFA94D" style="background:#FFA94D;" title="Turuncu"></button>
+              <button type="button" class="color-swatch" data-color="#FFF6C9" style="background:#FFF6C9;" title="Vanilya"></button>
+              <button type="button" class="color-swatch" data-color="#51CF66" style="background:#51CF66;" title="Yeşil"></button>
+              <button type="button" class="color-swatch" data-color="#845EF7" style="background:#845EF7;" title="Mor"></button>
+              <button type="button" class="color-swatch" data-color="#E8B4C2" style="background:#E8B4C2;" title="Gül"></button>
+              <button type="button" class="color-swatch" data-color="#2C2C2C" style="background:#2C2C2C;" title="Siyah"></button>
+            </div>
+            <div class="custom-color-row">
+              <label class="custom-color-label" for="custom-frosting-color">Özel renk seç:</label>
+              <input type="color" id="custom-frosting-color" class="custom-color-input" value="#FFF1E6">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. BOYAMA ARACI -->
+        <div class="tool-section" id="tool-paint">
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">🖌️ Pasta Üstüne Boya</h3>
+          <p class="text-soft" style="font-size: 0.84rem; margin-bottom: 1rem;">Pastanın üstüne parmağınla veya mouse ile serbest çizim yap!</p>
+          
+          <div class="step-section">
+            <label class="step-section-title"><span>🛠️</span> Çizim Aracı</label>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+              <button type="button" class="btn btn-secondary paint-tool-btn active" id="btn-tool-brush" style="padding: 0.5rem 0.2rem; font-size: 0.82rem; height: 38px; width: 100%;">
+                🖌️ Fırça
+              </button>
+              <button type="button" class="btn btn-secondary paint-tool-btn" id="btn-tool-eraser" style="padding: 0.5rem 0.2rem; font-size: 0.82rem; height: 38px; width: 100%;">
+                🧹 Silgi
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-clear-paint" style="padding: 0.5rem 0.2rem; font-size: 0.82rem; height: 38px; width: 100%;">
+                🗑️ Temizle
+              </button>
+            </div>
+          </div>
+
+          <div class="step-section" id="section-paint-colors">
+            <label class="step-section-title"><span>🎨</span> Fırça Rengi</label>
+            <div class="color-swatches" id="paint-color-swatches">
+              <button type="button" class="color-swatch active" data-color="#FF6B6B" style="background:#FF6B6B;" title="Kırmızı"></button>
+              <button type="button" class="color-swatch" data-color="#FF8FB1" style="background:#FF8FB1;" title="Pembe"></button>
+              <button type="button" class="color-swatch" data-color="#FFA94D" style="background:#FFA94D;" title="Turuncu"></button>
+              <button type="button" class="color-swatch" data-color="#FFD43B" style="background:#FFD43B;" title="Sarı"></button>
+              <button type="button" class="color-swatch" data-color="#51CF66" style="background:#51CF66;" title="Yeşil"></button>
+              <button type="button" class="color-swatch" data-color="#339AF0" style="background:#339AF0;" title="Mavi"></button>
+              <button type="button" class="color-swatch" data-color="#845EF7" style="background:#845EF7;" title="Mor"></button>
+              <button type="button" class="color-swatch" data-color="#FFFFFF" style="background:#FFFFFF;" title="Beyaz"></button>
+              <button type="button" class="color-swatch" data-color="#553A26" style="background:#553A26;" title="Çikolata"></button>
+              <button type="button" class="color-swatch" data-color="#2C2C2C" style="background:#2C2C2C;" title="Siyah"></button>
+            </div>
+            <div class="custom-color-row">
+              <label class="custom-color-label" for="custom-paint-color">Özel renk:</label>
+              <input type="color" id="custom-paint-color" class="custom-color-input" value="#FF6B6B">
+            </div>
+          </div>
+
+          <div class="step-section">
+            <label class="step-section-title" id="lbl-brush-size"><span>📏</span> Fırça Kalınlığı</label>
+            <div class="brush-size-control">
+              <input type="range" id="paint-brush-size" class="brush-slider" min="2" max="30" value="5" step="1">
+              <span class="brush-size-label" id="brush-size-label">5px</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-toggle-paint" style="width: 100%; height: 42px; margin-top: 0.5rem;" type="button">
+            🖌️ Boyamayı Başlat
+          </button>
+          <p class="text-soft" id="paint-status" style="font-size: 0.82rem; margin-top: 0.5rem; text-align: center;"></p>
+        </div>
+
+        <!-- 6. DİLİM ARACI (Solo Modda) -->
+        <div class="tool-section" id="tool-slices">
+          <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">🔪 Dilim Sayısı</h3>
+          <p class="text-soft" style="font-size: 0.84rem; margin-bottom: 1rem;">Solo modda pastanın dilim sayısını değiştir:</p>
+          
+          <div class="slice-counter-editor">
+            <button type="button" class="counter-btn" id="btn-editor-slice-minus">−</button>
+            <span class="counter-value counter-value-lg" id="val-editor-slice">8</span>
+            <button type="button" class="counter-btn" id="btn-editor-slice-plus">+</button>
+          </div>
+          <p class="text-soft" style="font-size: 0.82rem; text-align: center; margin-top: 0.5rem;">Dilim: 1 – 24 arası</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Orta Alan: SVG Pasta Kanvası -->
+    <section class="editor-canvas-container">
+      <!-- Gizlenen paneller için yüzen butonlar -->
+      <button type="button" class="floating-panel-btn float-left" id="btn-show-left-panel" style="display: none;" title="Süsleme Paneline Geç">
+        <span>🎨 Süsleme Paneli</span>
+      </button>
+      <button type="button" class="floating-panel-btn float-right" id="btn-show-right-panel" style="display: none;" title="Katılımcıları Göster">
+        <span>👥 Katılımcılar</span>
+      </button>
+
+      <div id="lock-notice" style="display: none; position: absolute; top: 1rem; z-index: 10;" class="badge badge-locked">
+        🔒 Bu pasta kilitlenmiştir, düzenleme yapılamaz.
+      </div>
+      <!-- Zoom Kontrolleri -->
+      <div class="zoom-controls" id="zoom-controls">
+        <button type="button" class="zoom-btn" id="btn-zoom-in" title="Yakınlaştır">＋</button>
+        <span class="zoom-level" id="zoom-level">100%</span>
+        <button type="button" class="zoom-btn" id="btn-zoom-out" title="Uzaklaştır">−</button>
+        <button type="button" class="zoom-btn" id="btn-zoom-reset" title="Sıfırla">⟳</button>
+      </div>
+      <div class="cake-stage" id="cake-stage">
+        <svg id="cake-svg"></svg>
+      </div>
+
+      <!-- Seçili Öğe İşlem Barı -->
+      <div id="selected-item-bar" class="selected-item-bar" style="display: none;">
+        <span>Seçili: <strong id="selected-item-name">Öğe</strong></span>
+        <button type="button" id="btn-delete-selected-item" class="btn btn-danger btn-sm" style="height: 32px; padding: 0 0.8rem; font-size: 0.8rem; border-radius: 12px;">
+          🗑️ Seçileni Sil
+        </button>
+      </div>
+    </section>
+
+    <!-- Sağ Panel: Katılımcılar & Bilgi (Masaüstü) -->
+    <aside class="editor-right-panel">
+      <button type="button" class="side-handle right-handle" id="btn-toggle-right-panel" title="Sağ Katılımcılar Paneli Gizle/Göster">
+        <span class="handle-icon">▶</span>
+      </button>
+
+      <div>
+        <h3 class="panel-block-title" style="margin-bottom: 0.75rem;"><span>👥</span> Katılımcılar</h3>
+        <div class="participants-list" id="participants-list">
+          <p class="text-soft" style="font-size: 0.85rem;">Solo modundasınız.</p>
+        </div>
+      </div>
+
+      <div style="margin-top: auto; background: var(--surface-alt); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem;">💡 İpuçları</h4>
+        <ul style="font-size: 0.8rem; color: var(--text-soft); padding-left: 1.1rem; line-height: 1.5;">
+          <li>Öğeleri sürükleyerek istediğin dilime taşı.</li>
+          <li>Seçili öğenin üst tutamacından döndür.</li>
+          <li>Sağ alt köşeden boyutlandır.</li>
+          <li>Kırmızı çarpıdan sil.</li>
+        </ul>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Mobil Alt Çekmece Gezinme Çubuğu -->
+  <nav class="mobile-bottom-bar">
+    <button type="button" class="mobile-nav-btn active" data-tab="tool-topper">
+      <span>🍢</span><span>Tabela</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tool-stickers">
+      <span>✨</span><span>Süsler</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tool-text">
+      <span>📝</span><span>Yazı</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tool-colors">
+      <span>🎨</span><span>Renk</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tool-paint">
+      <span>🖌️</span><span>Boya</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tool-slices" id="mobile-tab-slices">
+      <span>🔪</span><span>Dilim</span>
+    </button>
+  </nav>
+
+  <!-- İNTERAKTİF RESİM KIRPMA & YERLEŞTİRME MODALİ -->
+  <div class="modal-backdrop" id="modal-crop-image">
+    <div class="modal-card modal-card-lg" style="max-width: 440px; text-align: center;">
+      <div class="modal-header">
+        <h3 class="modal-title">🖼️ Resmi Konumlandır & Düzenle</h3>
+        <button class="modal-close" id="close-modal-crop" aria-label="Kapat">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1rem 0;">
+        <p class="text-soft" style="font-size: 0.84rem; margin-bottom: 0.8rem; line-height: 1.4;">
+          Resmi fareyle/parmağınla <strong>sürükleyerek istediğin gibi oynat</strong>, tekerlekle veya butonlarla <strong>büyüt/küçült</strong>!
+        </p>
+
+        <!-- İnteraktif Polaroid Tabela Önizleme Kartı -->
+        <div style="width: 256px; margin: 0 auto; background: #FFFFFF; border: 3px solid #F2D9E2; border-radius: 16px; padding: 12px; box-shadow: 0 10px 30px rgba(91, 75, 107, 0.12); position: relative;">
+          <!-- Fotoğraf Kırpma Penceresi (232x184) -->
+          <div id="interactive-crop-stage" style="width: 232px; height: 184px; border-radius: 10px; overflow: hidden; position: relative; background: #FFF5F8; cursor: grab; touch-action: none; border: 1px solid #F7E3EB;">
+            <img id="crop-stage-img" src="" alt="Düzenlenecek Görsel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); max-width: none; user-select: none; pointer-events: none;">
+            <div style="position: absolute; inset: 0; border: 2px dashed rgba(255, 143, 177, 0.45); pointer-events: none; border-radius: 8px;"></div>
+          </div>
+          <!-- Tabela Alt İsim / Yazı Canlı Önizleme Alanı -->
+          <div style="margin-top: 8px; background: #FFF9FB; border-radius: 8px; padding: 6px 10px; min-height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #FCEBF1;">
+            <span id="crop-caption-preview" style="font-family: var(--font-display, sans-serif); font-size: 15px; font-weight: 800; color: #5B4B6B; word-break: break-word;">
+              Hear Me Out
+            </span>
+          </div>
+        </div>
+
+        <!-- Hızlı Kontrol Butonları -->
+        <div style="display: flex; justify-content: center; gap: 0.4rem; margin-top: 0.8rem; flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-crop-zoom-in" title="Büyüt">🔍 ＋</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-crop-zoom-out" title="Küçült">🔍 −</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-crop-rotate" title="90° Döndür">⟳ Döndür</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-crop-center" title="Merkezle">🎯 Ortala</button>
+        </div>
+
+        <!-- Ölçek Kaydırıcı -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.8rem;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-soft);">Boyut:</span>
+          <input type="range" id="crop-slider-zoom" min="0.003" max="3.0" step="0.001" value="1.0" style="width: 170px;">
+          <span id="crop-zoom-val" style="font-size: 0.8rem; font-weight: 700; min-width: 40px; text-align: left;">100%</span>
+        </div>
+
+        <!-- Tabeladaki İsim / Yazı -->
+        <div class="form-group" style="text-align: left; margin-top: 1rem;">
+          <label class="form-label" for="crop-input-caption" style="font-size: 0.88rem;">Tabeladaki İsim / Yazı</label>
+          <input type="text" id="crop-input-caption" class="input-text" placeholder="Örn: Shrek, Ryan Gosling..." maxlength="30">
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+        <button type="button" class="btn btn-secondary" id="btn-crop-cancel" style="flex: 1;">Vazgeç</button>
+        <button type="button" class="btn btn-primary" id="btn-crop-confirm" style="flex: 1.5;">Pastaya Dik 📍</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Bildirimleri -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scriptler -->
+  <script type="module" src="/js/editor.js"></script>
+</body>
+</html>

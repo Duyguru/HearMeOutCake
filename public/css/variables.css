@@ -1,0 +1,51 @@
+:root {
+  /* Pastel palet */
+  --pink:        #FFD6E0;
+  --pink-deep:   #FFB3C6;
+  --peach:       #FFE5D0;
+  --butter:      #FFF6C9;
+  --mint:        #D4F5E3;
+  --sky:         #D6EBFF;
+  --lavender:    #E6DBFF;
+  --lilac:       #F3E8FF;
+
+  /* Yüzeyler */
+  --bg:          #FFF9FB;
+  --surface:     #FFFFFF;
+  --surface-alt: #FFF1F5;
+  --border:      #F2D9E2;
+  --border-focus:#FF8FB1;
+
+  /* Metin */
+  --text:        #5B4B6B;   /* yumuşak mor-gri */
+  --text-soft:   #8E7FA0;
+  --text-light:  #B5A8C2;
+  --accent:      #FF8FB1;   /* birincil buton */
+  --accent-hover:#FF74A0;
+  --accent-active:#EE5C8F;
+  --success:     #8FD9B6;
+  --danger:      #FF9AA2;
+  --warning:     #FFE388;
+
+  /* Şekil ve Yuvarlaklık */
+  --radius-xs:   8px;
+  --radius-sm:   12px;
+  --radius-md:   20px;
+  --radius-lg:   28px;
+  --radius-full: 9999px;
+
+  /* Gölgeler */
+  --shadow-sm:   0 2px 8px rgba(135, 95, 125, 0.08);
+  --shadow-soft: 0 8px 24px rgba(255, 143, 177, 0.18);
+  --shadow-hover:0 12px 32px rgba(255, 143, 177, 0.28);
+  --shadow-card: 0 10px 30px rgba(91, 75, 107, 0.06);
+
+  /* Tipografi */
+  --font-display: 'Baloo 2', 'Fredoka', cursive, system-ui, sans-serif;
+  --font-body:    'Nunito', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Geçişler */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: 0.3s ease;
+}

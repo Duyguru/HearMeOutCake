@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Stems -->
+  <path d="M 22 36 C 24 16 36 8 46 8" stroke="#4F772D" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M 42 42 C 40 24 38 12 46 8" stroke="#4F772D" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Leaf -->
+  <path d="M 46 8 C 54 6 58 12 52 16 C 46 16 46 10 46 8 Z" fill="#78D692"/>
+  <!-- Left Cherry -->
+  <circle cx="22" cy="44" r="14" fill="#D90429"/>
+  <ellipse cx="18" cy="38" rx="4" ry="2" transform="rotate(-30 18 38)" fill="#FF8FA3"/>
+  <!-- Right Cherry -->
+  <circle cx="44" cy="48" r="13" fill="#B3001B"/>
+  <ellipse cx="40" cy="43" rx="3.5" ry="1.8" transform="rotate(-30 40 43)" fill="#FF8FA3"/>
+</svg>
