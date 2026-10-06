@@ -227,9 +227,13 @@ class CakeEditorApp {
     }
 
     // Katılımcı Listesi
-    const participantsList = document.getElementById('participants-list');
-    if (participantsList && this.state.participants.length > 0) {
-      participantsList.innerHTML = '';
+    const renderParticipantRows = (targetEl) => {
+      if (!targetEl) return;
+      targetEl.innerHTML = '';
+      if (this.state.participants.length === 0) {
+        targetEl.innerHTML = '<p class="text-soft" style="font-size: 0.85rem;">Solo modundasınız.</p>';
+        return;
+      }
       this.state.participants.forEach(p => {
         const row = document.createElement('div');
         row.className = `participant-row ${this.state.myParticipant && this.state.myParticipant.id === p.id ? 'is-me' : ''}`;
@@ -237,9 +241,12 @@ class CakeEditorApp {
           <span>${p.is_creator ? '👑 ' : ''}${p.nickname}</span>
           <span class="badge">Dilim #${p.slice_index + 1}</span>
         `;
-        participantsList.appendChild(row);
+        targetEl.appendChild(row);
       });
-    }
+    };
+
+    renderParticipantRows(document.getElementById('participants-list'));
+    renderParticipantRows(document.getElementById('participants-list-tab'));
 
     // Kilitli Pasta Durumu & Yetki Kontrolleri
     const lockNotice = document.getElementById('lock-notice');

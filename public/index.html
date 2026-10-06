@@ -40,18 +40,19 @@
     }
 
     .hero-subtitle {
-      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      font-size: clamp(0.95rem, 2.5vw, 1.25rem);
       color: var(--text-soft);
       max-width: 600px;
-      margin: 0 auto 2.5rem;
+      margin: 0 auto 2rem;
     }
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: 1.5rem;
       max-width: 860px;
-      margin: 0 auto 3rem;
+      margin: 0 auto 2.5rem;
+      width: 100%;
     }
 
     .gallery-link-container {
