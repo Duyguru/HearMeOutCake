@@ -7,14 +7,29 @@ from typing import Optional, List, Dict, Any
 from api.config import settings
 from api.supabase_client import get_supabase_client
 
+import os
+from pathlib import Path
+
+_db_initialized = False
+
+def get_db_path() -> str:
+    if os.environ.get("VERCEL"):
+        tmp_dir = Path("/tmp")
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        return str(tmp_dir / "hearmeoutcake.db")
+    return settings.LOCAL_DB_PATH
+
 # SQLite fallback connection
 def get_sqlite_conn():
-    conn = sqlite3.connect(settings.LOCAL_DB_PATH)
+    global _db_initialized
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
+    if not _db_initialized:
+        init_sqlite_tables(conn)
+        _db_initialized = True
     return conn
 
-def init_sqlite_db():
-    conn = get_sqlite_conn()
+def init_sqlite_tables(conn):
     cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS cakes (
@@ -75,6 +90,9 @@ def init_sqlite_db():
     );
     """)
     conn.commit()
+
+def init_sqlite_db():
+    conn = get_sqlite_conn()
     conn.close()
 
 # SQLite başlat
