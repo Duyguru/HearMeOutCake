@@ -5,10 +5,11 @@ from api.config import settings
 from api.schemas.room import RoomCreate, JoinRoomRequest, RoomCreateResponse
 from api.services.slices import calculate_slice_angles
 
-router = APIRouter(prefix="/api/rooms", tags=["rooms"])
+router = APIRouter(tags=["rooms"])
 
 
-@router.post("", response_model=RoomCreateResponse)
+@router.post("/api/rooms", response_model=RoomCreateResponse)
+@router.post("/rooms", response_model=RoomCreateResponse)
 async def create_room_endpoint(payload: RoomCreate):
     # 1. Ortak pasta oluştur
     cake_data = {
@@ -48,7 +49,8 @@ async def create_room_endpoint(payload: RoomCreate):
     }
 
 
-@router.get("/{invite_code}")
+@router.get("/api/rooms/{invite_code}")
+@router.get("/rooms/{invite_code}")
 async def get_room_status(invite_code: str):
     room = db.get_room_by_invite(invite_code)
     if not room:
@@ -91,7 +93,8 @@ async def get_room_status(invite_code: str):
     }
 
 
-@router.post("/{invite_code}/join")
+@router.post("/api/rooms/{invite_code}/join")
+@router.post("/rooms/{invite_code}/join")
 async def join_room_endpoint(invite_code: str, payload: JoinRoomRequest):
     room = db.get_room_by_invite(invite_code)
     if not room:
@@ -131,7 +134,8 @@ async def join_room_endpoint(invite_code: str, payload: JoinRoomRequest):
     }
 
 
-@router.get("/{invite_code}/state")
+@router.get("/api/rooms/{invite_code}/state")
+@router.get("/rooms/{invite_code}/state")
 async def get_room_state(
     invite_code: str,
     x_participant_token: Optional[str] = Header(None, alias="X-Participant-Token")

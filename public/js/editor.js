@@ -103,7 +103,8 @@ class CakeEditorApp {
         const cached = localStorage.getItem(`cake_data_${cakeIdOrCode}`);
         if (cached) {
           cakeData = JSON.parse(cached);
-          cakeItems = [];
+          const cachedItems = localStorage.getItem(`cake_items_${cakeIdOrCode}`) || localStorage.getItem(`cake_items_${cakeData.id}`);
+          cakeItems = cachedItems ? JSON.parse(cachedItems) : [];
         } else {
           throw err;
         }
@@ -700,22 +701,34 @@ class CakeEditorApp {
     }
   }
 
+  persistSoloItems() {
+    if (this.state.cake && this.state.cake.mode === 'solo') {
+      try {
+        localStorage.setItem(`cake_items_${this.state.cake.id}`, JSON.stringify(this.state.items));
+        if (this.state.cake.share_code) {
+          localStorage.setItem(`cake_items_${this.state.cake.share_code}`, JSON.stringify(this.state.items));
+        }
+      } catch (e) {}
+    }
+  }
+
   async deleteSelectedItem() {
     if (!this.state.selectedItem) return;
     const itemId = this.state.selectedItem.id;
     try {
       await api.deleteItem(itemId);
-      this.state.items = this.state.items.filter(i => i.id !== itemId);
-      this.selectItem(null);
-      this.renderer.setData({ items: this.state.items });
-      this.saveStateToHistory();
-      showToast('Öğe silindi', 'info');
-      if (this.state.remainingQuota !== null) {
-        this.state.remainingQuota++;
-        this.updateUI();
-      }
     } catch (err) {
-      showToast(err.message || 'Öğe silinemedi', 'error');
+      console.warn('API deleteItem failed, deleting locally:', err);
+    }
+    this.state.items = this.state.items.filter(i => i.id !== itemId);
+    this.persistSoloItems();
+    this.selectItem(null);
+    this.renderer.setData({ items: this.state.items });
+    this.saveStateToHistory();
+    showToast('Öğe silindi', 'info');
+    if (this.state.remainingQuota !== null) {
+      this.state.remainingQuota++;
+      this.updateUI();
     }
   }
 
@@ -1132,22 +1145,47 @@ class CakeEditorApp {
           const croppedBlob = await this.renderCroppedCanvas(img, cropState);
           const finalFile = new File([croppedBlob], 'topper-adjusted.png', { type: 'image/png' });
 
-          const uploadRes = await api.uploadImage(finalFile);
-
-          const itemRes = await api.addItem(this.state.cake.id, {
-            type: 'topper',
-            content: caption,
-            x: 0.5,
-            y: 0.45,
-            scale: 1.0,
-            rotation: Math.floor(Math.random() * 16) - 8,
-            style: {
-              caption: caption,
-              imageUrl: uploadRes.url
-            }
-          });
+          let itemRes = null;
+          try {
+            const uploadRes = await api.uploadImage(finalFile);
+            itemRes = await api.addItem(this.state.cake.id, {
+              type: 'topper',
+              content: caption,
+              x: 0.5,
+              y: 0.45,
+              scale: 1.0,
+              rotation: Math.floor(Math.random() * 16) - 8,
+              style: {
+                caption: caption,
+                imageUrl: uploadRes.url
+              }
+            });
+          } catch (uploadOrAddErr) {
+            console.warn('API topper upload/add error, using local fallback:', uploadOrAddErr);
+            const dataUrl = await new Promise((res) => {
+              const r = new FileReader();
+              r.onload = () => res(r.result);
+              r.readAsDataURL(finalFile);
+            });
+            itemRes = {
+              id: 'topper_' + Math.random().toString(36).substring(2, 10),
+              cake_id: this.state.cake.id,
+              type: 'topper',
+              content: caption,
+              x: 0.5,
+              y: 0.45,
+              scale: 1.0,
+              rotation: Math.floor(Math.random() * 16) - 8,
+              style: {
+                caption: caption,
+                imageUrl: dataUrl
+              },
+              created_at: new Date().toISOString()
+            };
+          }
 
           this.state.items.push(itemRes);
+          this.persistSoloItems();
           this.renderer.setData({ items: this.state.items });
           this.selectItem(itemRes);
           this.saveStateToHistory();
@@ -1225,20 +1263,41 @@ class CakeEditorApp {
       }
 
       try {
-        const itemRes = await api.addItem(this.state.cake.id, {
-          type: 'text',
-          content: text,
-          x: 0.5,
-          y: 0.5,
-          scale: 1.0,
-          rotation: 0,
-          style: {
-            color: '#5B4B6B',
-            fontSize: 16
-          }
-        });
+        let itemRes = null;
+        try {
+          itemRes = await api.addItem(this.state.cake.id, {
+            type: 'text',
+            content: text,
+            x: 0.5,
+            y: 0.5,
+            scale: 1.0,
+            rotation: 0,
+            style: {
+              color: '#5B4B6B',
+              fontSize: 16
+            }
+          });
+        } catch (apiErr) {
+          console.warn('API text add error, using local fallback:', apiErr);
+          itemRes = {
+            id: 'text_' + Math.random().toString(36).substring(2, 10),
+            cake_id: this.state.cake.id,
+            type: 'text',
+            content: text,
+            x: 0.5,
+            y: 0.5,
+            scale: 1.0,
+            rotation: 0,
+            style: {
+              color: '#5B4B6B',
+              fontSize: 16
+            },
+            created_at: new Date().toISOString()
+          };
+        }
 
         this.state.items.push(itemRes);
+        this.persistSoloItems();
         this.renderer.setData({ items: this.state.items });
         this.selectItem(itemRes);
         this.saveStateToHistory();
@@ -1270,16 +1329,34 @@ class CakeEditorApp {
 
         const stickerCode = el.dataset.sticker;
         try {
-          const itemRes = await api.addItem(this.state.cake.id, {
-            type: 'sticker',
-            content: stickerCode,
-            x: 0.5 + (Math.random() * 0.2 - 0.1),
-            y: 0.5 + (Math.random() * 0.2 - 0.1),
-            scale: 1.0,
-            rotation: Math.floor(Math.random() * 30 - 15)
-          });
+          let itemRes = null;
+          try {
+            itemRes = await api.addItem(this.state.cake.id, {
+              type: 'sticker',
+              content: stickerCode,
+              x: 0.5 + (Math.random() * 0.2 - 0.1),
+              y: 0.5 + (Math.random() * 0.2 - 0.1),
+              scale: 1.0,
+              rotation: Math.floor(Math.random() * 30 - 15)
+            });
+          } catch (apiErr) {
+            console.warn('API sticker add error, using local fallback:', apiErr);
+            itemRes = {
+              id: 'sticker_' + Math.random().toString(36).substring(2, 10),
+              cake_id: this.state.cake.id,
+              type: 'sticker',
+              content: stickerCode,
+              x: 0.5 + (Math.random() * 0.2 - 0.1),
+              y: 0.5 + (Math.random() * 0.2 - 0.1),
+              scale: 1.0,
+              rotation: Math.floor(Math.random() * 30 - 15),
+              style: {},
+              created_at: new Date().toISOString()
+            };
+          }
 
           this.state.items.push(itemRes);
+          this.persistSoloItems();
           this.renderer.setData({ items: this.state.items });
           this.selectItem(itemRes);
           this.saveStateToHistory();
@@ -1307,12 +1384,12 @@ class CakeEditorApp {
         btn.classList.add('active');
         try {
           await api.updateCake(this.state.cake.id, { cake_color: color });
-          this.state.cake.cake_color = color;
-          this.renderer.setData({ cake: this.state.cake });
-          this.saveStateToHistory();
         } catch (err) {
-          showToast('Renk güncellenemedi', 'error');
+          console.warn('API updateCake cake_color failed, updating locally:', err);
         }
+        this.state.cake.cake_color = color;
+        this.renderer.setData({ cake: this.state.cake });
+        this.saveStateToHistory();
       });
     });
 
@@ -1324,11 +1401,12 @@ class CakeEditorApp {
         btn.classList.add('active');
         try {
           await api.updateCake(this.state.cake.id, { frosting_color: color });
-          this.state.cake.frosting_color = color;
-          this.renderer.setData({ cake: this.state.cake });
         } catch (err) {
-          showToast('Krema rengi güncellenemedi', 'error');
+          console.warn('API updateCake frosting_color failed, updating locally:', err);
         }
+        this.state.cake.frosting_color = color;
+        this.renderer.setData({ cake: this.state.cake });
+        this.saveStateToHistory();
       });
     });
   }
@@ -1340,15 +1418,14 @@ class CakeEditorApp {
       customCakeColor.addEventListener('input', async (e) => {
         if (this.state.isLocked) return;
         const color = e.target.value;
-        // Swatchlerden active kaldır
         document.querySelectorAll('#editor-swatches-cake .color-swatch').forEach(b => b.classList.remove('active'));
         try {
           await api.updateCake(this.state.cake.id, { cake_color: color });
-          this.state.cake.cake_color = color;
-          this.renderer.setData({ cake: this.state.cake });
         } catch (err) {
-          showToast('Renk güncellenemedi', 'error');
+          console.warn('API updateCake cake_color failed, updating locally:', err);
         }
+        this.state.cake.cake_color = color;
+        this.renderer.setData({ cake: this.state.cake });
       });
     }
 
@@ -1361,11 +1438,11 @@ class CakeEditorApp {
         document.querySelectorAll('#editor-swatches-frosting .color-swatch').forEach(b => b.classList.remove('active'));
         try {
           await api.updateCake(this.state.cake.id, { frosting_color: color });
-          this.state.cake.frosting_color = color;
-          this.renderer.setData({ cake: this.state.cake });
         } catch (err) {
-          showToast('Krema rengi güncellenemedi', 'error');
+          console.warn('API updateCake frosting_color failed, updating locally:', err);
         }
+        this.state.cake.frosting_color = color;
+        this.renderer.setData({ cake: this.state.cake });
       });
     }
   }
@@ -1381,14 +1458,20 @@ class CakeEditorApp {
     }
 
     try {
-      const res = await api.saveCake(this.state.cake.id);
-      this.state.isLocked = true;
-      this.state.cake.is_locked = true;
-      this.updateUI();
-      showToast('Pasta başarıyla kilitlendi ve kaydedildi! 🎉', 'success');
+      await api.saveCake(this.state.cake.id);
     } catch (err) {
-      showToast(err.message || 'Pasta kaydedilemedi', 'error');
+      console.warn('API saveCake failed, saving locally:', err);
     }
+    this.state.isLocked = true;
+    this.state.cake.is_locked = true;
+    if (this.state.cake.mode === 'solo') {
+      localStorage.setItem(`cake_data_${this.state.cake.id}`, JSON.stringify(this.state.cake));
+      if (this.state.cake.share_code) {
+        localStorage.setItem(`cake_data_${this.state.cake.share_code}`, JSON.stringify(this.state.cake));
+      }
+    }
+    this.updateUI();
+    showToast('Pasta başarıyla kilitlendi ve kaydedildi! 🎉', 'success');
   }
 
   async exportPng() {

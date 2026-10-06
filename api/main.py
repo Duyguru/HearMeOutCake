@@ -27,8 +27,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def vercel_routing_middleware(request, call_next):
+    # Vercel serverless rewrite durumlarında path normalizasyonu
+    path = request.scope.get("path", "")
+    matched_path = request.headers.get("x-matched-path") or request.headers.get("x-forwarded-uri")
+    
+    if matched_path and matched_path.startswith("/api/"):
+        request.scope["path"] = matched_path
+    elif path.startswith("/api/index.py"):
+        suffix = path[len("/api/index.py"):]
+        request.scope["path"] = f"/api{suffix}" if suffix else "/api"
+    elif path.startswith("/api/main.py"):
+        suffix = path[len("/api/main.py"):]
+        request.scope["path"] = f"/api{suffix}" if suffix else "/api"
+
+    response = await call_next(request)
+    return response
+
+
 # Health check
 @app.get("/api/health")
+@app.get("/health")
 async def health_check():
     return {
         "status": "ok",

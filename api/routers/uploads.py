@@ -7,13 +7,14 @@ from PIL import Image
 from api.config import settings
 from api.supabase_client import get_supabase_client
 
-router = APIRouter(prefix="/api/uploads", tags=["uploads"])
+router = APIRouter(tags=["uploads"])
 
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
-@router.post("")
+@router.post("/api/uploads")
+@router.post("/uploads")
 async def upload_image(file: UploadFile = File(...)):
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(

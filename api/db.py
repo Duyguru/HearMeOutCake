@@ -19,14 +19,10 @@ def get_db_path() -> str:
         return str(tmp_dir / "hearmeoutcake.db")
     return settings.LOCAL_DB_PATH
 
-# SQLite fallback connection
 def get_sqlite_conn():
-    global _db_initialized
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
-    if not _db_initialized:
-        init_sqlite_tables(conn)
-        _db_initialized = True
+    init_sqlite_tables(conn)
     return conn
 
 def init_sqlite_tables(conn):

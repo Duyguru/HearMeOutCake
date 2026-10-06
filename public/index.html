@@ -366,6 +366,9 @@
 
       const title = document.getElementById('cake-title').value.trim() || 'Hear Me Out Pasta';
 
+      let cake = null;
+      let creatorToken = null;
+
       try {
         const res = await fetch('/api/cakes', {
           method: 'POST',
@@ -381,34 +384,53 @@
           })
         });
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || 'Pasta oluşturulamadı');
+        if (res.ok) {
+          const data = await res.json();
+          cake = data.cake;
+          creatorToken = data.creator_token;
         }
-
-        const data = await res.json();
-        // Token ve veriyi localStorage'a kaydet
-        if (data.creator_token) {
-          localStorage.setItem(`cake_token_${data.cake.id}`, data.creator_token);
-          if (data.cake.share_code) {
-            localStorage.setItem(`cake_token_${data.cake.share_code}`, data.creator_token);
-          }
-        }
-        if (data.cake) {
-          localStorage.setItem(`cake_data_${data.cake.id}`, JSON.stringify(data.cake));
-          if (data.cake.share_code) {
-            localStorage.setItem(`cake_data_${data.cake.share_code}`, JSON.stringify(data.cake));
-          }
-        }
-
-        // Editöre yönlendir
-        const redirectCode = data.cake.share_code || data.cake.id;
-        window.location.href = `/editor.html?cake=${redirectCode}`;
       } catch (err) {
-        showToast(err.message, 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Pastayı Süslemeye Başla ✨';
+        console.warn('API cake create error, switching to client storage:', err);
       }
+
+      if (!cake) {
+        const fallbackId = 'cake_' + Math.random().toString(36).substring(2, 10);
+        const fallbackCode = Math.random().toString(36).substring(2, 8);
+        creatorToken = 'tok_' + Math.random().toString(36).substring(2, 18);
+        cake = {
+          id: fallbackId,
+          title: title,
+          shape: 'round',
+          layers: 1,
+          cake_color: selectedCakeColor,
+          frosting_color: selectedFrostingColor,
+          slice_count: sliceCount,
+          mode: 'solo',
+          is_locked: false,
+          share_code: fallbackCode,
+          creator_token: creatorToken,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+      }
+
+      // Token ve veriyi localStorage'a kaydet
+      if (creatorToken) {
+        localStorage.setItem(`cake_token_${cake.id}`, creatorToken);
+        if (cake.share_code) {
+          localStorage.setItem(`cake_token_${cake.share_code}`, creatorToken);
+        }
+      }
+      if (cake) {
+        localStorage.setItem(`cake_data_${cake.id}`, JSON.stringify(cake));
+        if (cake.share_code) {
+          localStorage.setItem(`cake_data_${cake.share_code}`, JSON.stringify(cake));
+        }
+      }
+
+      // Editöre yönlendir
+      const redirectCode = cake.share_code || cake.id;
+      window.location.href = `/editor.html?cake=${redirectCode}`;
     });
 
     // Collab Form Gönderimi

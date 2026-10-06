@@ -8,6 +8,7 @@ router = APIRouter(tags=["items"])
 
 
 @router.post("/api/cakes/{cake_id}/items", response_model=ItemResponse)
+@router.post("/cakes/{cake_id}/items", response_model=ItemResponse)
 async def add_item_to_cake(
     cake_id: str,
     payload: ItemCreate,
@@ -35,6 +36,7 @@ async def add_item_to_cake(
 
 
 @router.patch("/api/items/{item_id}", response_model=ItemResponse)
+@router.patch("/items/{item_id}", response_model=ItemResponse)
 async def update_item_endpoint(
     item_id: str,
     payload: ItemUpdate,
@@ -75,6 +77,7 @@ async def update_item_endpoint(
 
 
 @router.delete("/api/items/{item_id}")
+@router.delete("/items/{item_id}")
 async def delete_item_endpoint(
     item_id: str,
     x_participant_token: Optional[str] = Header(None, alias="X-Participant-Token"),
