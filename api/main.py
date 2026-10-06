@@ -45,9 +45,10 @@ app.include_router(uploads_router)
 
 # Statik dosya sunumu (Yerel ortam için)
 if not os.environ.get("VERCEL"):
-    public_path = Path(__file__).resolve().parent.parent / "public"
+    root_path = Path(__file__).resolve().parent.parent
+    public_path = root_path / "public" if (root_path / "public").exists() else root_path
 
-    if public_path.exists():
+    if (public_path / "index.html").exists():
         @app.get("/", include_in_schema=False)
         async def serve_index():
             return FileResponse(public_path / "index.html")

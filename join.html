@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Odaya Katıl 🍰 — Hear Me Out Cake</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <style>
+    .join-container {
+      max-width: 460px;
+      margin: 4rem auto 2rem;
+      padding: 0 1rem;
+    }
+
+    .join-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 3px solid var(--border);
+      padding: 2.5rem 2rem;
+      box-shadow: var(--shadow-card);
+      text-align: center;
+    }
+
+    .join-avatar {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      animation: floatAnim 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatAnim {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
+    }
+
+    .room-badge-group {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="join-container">
+    <div class="join-card" id="join-card-box">
+      <div class="join-avatar">🍰</div>
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.5rem;" id="room-cake-title">Hear Me Out Pastası</h1>
+      <p class="text-soft" style="font-size: 0.95rem; margin-bottom: 1.25rem;">
+        Arkadaşın seni pastayı birlikte süslemeye davet etti!
+      </p>
+
+      <div class="room-badge-group">
+        <span class="badge" id="badge-occupancy">Katılımcı Yükleniyor...</span>
+        <span class="badge badge-quota" id="badge-quota-info">3 Ekleme Hakkı</span>
+      </div>
+
+      <!-- Katılma Formu -->
+      <form id="form-join">
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="input-nickname">Takma Adın</label>
+          <input type="text" id="input-nickname" class="input-text" placeholder="Örn: Deniz, Ahmet..." required maxlength="24">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-submit-join" style="width: 100%; margin-top: 0.5rem;">
+          Pastaya Katıl & Dilimini Al ✨
+        </button>
+      </form>
+
+      <!-- Oda Dolu Durumu -->
+      <div id="box-room-full" style="display: none; margin-top: 1rem;">
+        <div style="background: #FFF1F5; border: 2px solid var(--pink-deep); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+          <h3 style="color: #943a57; margin-bottom: 0.35rem;">🚫 Oda Dolu!</h3>
+          <p class="text-soft" style="font-size: 0.9rem;">
+            Maksimum katılımcı sayısına ulaşıldığı için yeni dilim atanamıyor.
+          </p>
+        </div>
+        <button type="button" class="btn btn-secondary" id="btn-view-only" style="width: 100%;">
+          Pastayı Yalnızca Görüntüle 👀
+        </button>
+      </div>
+
+      <div style="margin-top: 1.75rem;">
+        <a href="/" class="text-soft" style="font-size: 0.88rem; font-weight: 700;">
+          ‹ Ana Sayfaya Dön
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script type="module">
+    import { api } from '/js/api.js';
+    import { showToast } from '/js/utils.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('room');
+
+    if (!inviteCode) {
+      showToast('Geçersiz davet bağlantısı!', 'error');
+      setTimeout(() => window.location.href = '/', 2000);
+    }
+
+    let currentRoom = null;
+
+    async function loadRoom() {
+      try {
+        const data = await api.getRoomStatus(inviteCode);
+        currentRoom = data.room;
+
+        document.getElementById('room-cake-title').textContent = data.cake.title || 'Hear Me Out Pasta';
+        document.getElementById('badge-occupancy').textContent = `👥 ${data.participants_count}/${data.room.max_participants} Katılımcı`;
+        document.getElementById('badge-quota-info').textContent = `🎯 Kişi başı ${data.room.items_per_participant} Hak`;
+
+        // Zaten kayıtlı token var mı kontrol et
+        const savedToken = localStorage.getItem(`room_token_${data.room.id}`);
+        if (savedToken) {
+          // Doğrudan editöre yönlendir
+          window.location.href = `/editor.html?room=${inviteCode}`;
+          return;
+        }
+
+        if (data.is_full) {
+          document.getElementById('form-join').style.display = 'none';
+          document.getElementById('box-room-full').style.display = 'block';
+          document.getElementById('btn-view-only').addEventListener('click', () => {
+            window.location.href = `/editor.html?room=${inviteCode}`;
+          });
+        }
+      } catch (err) {
+        showToast(err.message || 'Oda bilgisi alınamadı', 'error');
+      }
+    }
+
+    document.getElementById('form-join').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nickname = document.getElementById('input-nickname').value.trim();
+      const submitBtn = document.getElementById('btn-submit-join');
+
+      if (!nickname) {
+        showToast('Lütfen bir takma ad girin', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Dilim ayrılıyor...';
+
+      try {
+        const res = await api.joinRoom(inviteCode, nickname);
+        if (res.token) {
+          localStorage.setItem(`room_token_${res.room.id}`, res.token);
+          localStorage.setItem(`participant_${res.room.id}`, JSON.stringify(res.participant));
+        }
+
+        showToast('Odaya katıldın! Editöre yönlendiriliyorsun...', 'success');
+        setTimeout(() => {
+          window.location.href = `/editor.html?room=${inviteCode}`;
+        }, 600);
+      } catch (err) {
+        showToast(err.message || 'Katılım sağlanamadı', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Pastaya Katıl & Dilimini Al ✨';
+      }
+    });
+
+    loadRoom();
+  </script>
+</body>
+</html>

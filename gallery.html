@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastalarım 📖 — Hear Me Out Cake</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <style>
+    .gallery-header {
+      padding: 3rem 1rem 2rem;
+      text-align: center;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .cake-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--border);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-normal), border-color var(--transition-fast);
+    }
+
+    .cake-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+
+    .cake-card-icon {
+      font-size: 2.8rem;
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .cake-card-title {
+      font-size: 1.3rem;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .cake-card-meta {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      margin-bottom: 1.25rem;
+    }
+
+    .cake-card-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="container gallery-header">
+    <a href="/" class="btn-icon" style="margin-bottom: 1rem;" title="Ana Sayfa">‹</a>
+    <h1>📖 Kaydedilen <span>Pastalarım</span></h1>
+    <p class="text-soft">Bu cihazda oluşturduğun ve katıldığın pastalar:</p>
+  </header>
+
+  <main class="container">
+    <div id="gallery-container" class="gallery-grid">
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;" id="loading-state">
+        <p class="text-soft">Pastalar yükleniyor...</p>
+      </div>
+    </div>
+
+    <!-- Pasta Kodu ile Açma Bölümü -->
+    <div class="card" style="max-width: 500px; margin: 0 auto 4rem; text-align: center;">
+      <h3 style="margin-bottom: 0.5rem;">🔗 Paylaşım Kodu ile Pasta Aç</h3>
+      <p class="text-soft" style="font-size: 0.9rem; margin-bottom: 1rem;">
+        Bir arkadaşının paylaştığı kodu girerek pastayı görüntüleyebilirsin:
+      </p>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="input-share-code" class="input-text" placeholder="Örn: 9a3f2b1c">
+        <button type="button" class="btn btn-primary" id="btn-open-code">Aç</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script type="module">
+    import { api } from '/js/api.js?v=2';
+    import { showToast } from '/js/utils.js';
+
+    async function loadGallery() {
+      const container = document.getElementById('gallery-container');
+      const tokens = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('cake_token_') || key.startsWith('room_token_'))) {
+          tokens.push(localStorage.getItem(key));
+        }
+      }
+
+      if (tokens.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🧁</div>
+            <h3 style="margin-bottom: 0.35rem;">Henüz kayıtlı bir pastan yok</h3>
+            <p class="text-soft" style="margin-bottom: 1.5rem;">Hemen bir pasta oluşturarak ilk pastanı süsle!</p>
+            <a href="/" class="btn btn-primary">Pasta Oluştur ✨</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const cakes = await api.getGalleryCakes(tokens);
+        if (!cakes || cakes.length === 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1rem;">
+              <p class="text-soft">Geçmiş pastalar bulunamadı.</p>
+              <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Yeni Pasta Oluştur</a>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = '';
+        cakes.forEach(cake => {
+          const card = document.createElement('div');
+          card.className = 'cake-card';
+          const dateStr = cake.created_at ? new Date(cake.created_at).toLocaleDateString('tr-TR') : '';
+
+          card.innerHTML = `
+            <div class="cake-card-icon">🍰</div>
+            <h3 class="cake-card-title">${cake.title || 'İsimsiz Pasta'}</h3>
+            <div class="cake-card-meta">
+              <span>${cake.slice_count} Dilim</span> • <span>${cake.mode === 'collab' ? 'Ortak Oda' : 'Solo'}</span>
+              ${dateStr ? ` • <span>${dateStr}</span>` : ''}
+            </div>
+            <div class="cake-card-actions" style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+              <a href="/editor.html?cake=${cake.share_code}" class="btn btn-primary" style="flex: 1; padding: 0.6rem 1rem; font-size: 0.95rem;">
+                Aç 🎨
+              </a>
+              <button type="button" class="btn btn-danger btn-delete-cake" style="padding: 0.6rem 0.85rem; font-size: 0.95rem;" title="Pastayı Sil">
+                🗑️
+              </button>
+            </div>
+          `;
+
+          const deleteBtn = card.querySelector('.btn-delete-cake');
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const title = cake.title || 'İsimsiz Pasta';
+              if (!confirm(`"${title}" isimli pastayı silmek istediğinizden emin misiniz?`)) return;
+
+              try {
+                const tokenKey = `cake_token_${cake.id}`;
+                const altTokenKey = `cake_token_${cake.share_code}`;
+                const savedToken = localStorage.getItem(tokenKey) || localStorage.getItem(altTokenKey);
+                if (savedToken) api.setCreatorToken(savedToken);
+
+                if (typeof api.deleteCake === 'function') {
+                  await api.deleteCake(cake.id);
+                } else {
+                  await api.request(`/api/cakes/${cake.id}`, { method: 'DELETE' });
+                }
+
+                localStorage.removeItem(tokenKey);
+                localStorage.removeItem(altTokenKey);
+                showToast('Pasta silindi 🗑️', 'info');
+                loadGallery();
+              } catch (err) {
+                showToast(err.message || 'Pasta silinemedi', 'error');
+              }
+            });
+          }
+
+          container.appendChild(card);
+        });
+      } catch (err) {
+        container.innerHTML = `<p class="text-soft text-center" style="grid-column: 1/-1;">Pastalar yüklenirken bir hata oluştu.</p>`;
+      }
+    }
+
+    document.getElementById('btn-open-code').addEventListener('click', () => {
+      const code = document.getElementById('input-share-code').value.trim();
+      if (!code) {
+        showToast('Lütfen bir kod girin', 'error');
+        return;
+      }
+      window.location.href = `/editor.html?cake=${encodeURIComponent(code)}`;
+    });
+
+    loadGallery();
+  </script>
+</body>
+</html>
