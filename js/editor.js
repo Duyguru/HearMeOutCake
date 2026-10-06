@@ -295,10 +295,7 @@ class CakeEditorApp {
   // ============================================================
 
   bindEvents() {
-    const sidebar = document.querySelector('.editor-sidebar');
-    const drawerTitle = document.getElementById('drawer-active-title');
-
-    // Sekme Butonları (Araçlar / Sticker / Renkler)
+    // Sekme Butonları (Araçlar / Sticker / Renkler / Boya / Dilim)
     document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.sidebar-tab-btn').forEach(b => b.classList.remove('active'));
@@ -307,41 +304,8 @@ class CakeEditorApp {
         const target = btn.dataset.target;
         const section = document.getElementById(target);
         if (section) section.classList.add('active');
-
-        if (drawerTitle) {
-          drawerTitle.textContent = btn.textContent.trim();
-        }
-
-        document.querySelectorAll('.mobile-nav-btn').forEach(mb => {
-          if (mb.dataset.tab === target) {
-            mb.classList.add('active');
-          } else {
-            mb.classList.remove('active');
-          }
-        });
       });
     });
-
-    // Mobil Alt Gezinme Butonları
-    document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const targetTab = btn.dataset.tab;
-        if (targetTab) {
-          const tabBtn = document.querySelector(`.sidebar-tab-btn[data-target="${targetTab}"]`);
-          if (tabBtn) tabBtn.click();
-          if (sidebar) {
-            sidebar.classList.add('open');
-          }
-        }
-      });
-    });
-
-    const btnCloseDrawer = document.getElementById('btn-close-mobile-drawer');
-    if (btnCloseDrawer && sidebar) {
-      btnCloseDrawer.addEventListener('click', () => {
-        sidebar.classList.remove('open');
-      });
-    }
 
     // SVG Canvas Pointer Olayları (Sürükleme, Döndürme, Boyutlandırma)
     this.svgElement.addEventListener('pointerdown', (e) => this.handlePointerDown(e));

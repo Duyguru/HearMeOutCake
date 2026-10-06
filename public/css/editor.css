@@ -451,96 +451,46 @@
   font-weight: 700;
 }
 
-/* MOBİL ALT ÇEKMECE (BOTTOM SHEET) */
-.mobile-bottom-bar {
-  display: none;
-}
-
+/* RESPONSIVE WEB / DESKTOP LAYOUT FOR ALL SCREENS */
 @media (max-width: 900px) {
-  .mobile-drawer-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-    background: var(--surface-alt);
-    border-bottom: 1.5px solid var(--border);
+  .editor-nav {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .drawer-title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.92rem;
-    color: var(--text);
-  }
-
-  .btn-close-drawer {
-    background: #FFF0F5;
-    border: 1px solid var(--border);
-    font-size: 1rem;
-    font-weight: bold;
-    color: var(--text-soft);
-    cursor: pointer;
-    padding: 0.2rem 0.6rem;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .editor-sidebar {
-    position: fixed;
-    bottom: 60px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 52vh;
-    border-right: none;
-    border-top: 2px solid var(--border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    transform: translateY(110%);
-    box-shadow: 0 -10px 30px rgba(91, 75, 107, 0.15);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .editor-sidebar.open {
-    transform: translateY(0);
-  }
-
-  .editor-right-panel {
+  .editor-nav::-webkit-scrollbar {
     display: none;
   }
 
+  .nav-title {
+    font-size: 1.05rem;
+  }
+
+  .nav-actions {
+    gap: 0.35rem;
+  }
+
+  .nav-actions .btn {
+    height: 36px;
+    min-width: auto;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .editor-sidebar {
+    width: 290px;
+    min-width: 270px;
+  }
+
+  .editor-right-panel {
+    width: 220px;
+    min-width: 190px;
+  }
+
   .editor-canvas-container {
-    padding: 1rem;
-    margin-bottom: 65px;
-  }
-
-  .mobile-bottom-bar {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: var(--surface);
-    border-top: 2px solid var(--border);
-    z-index: 40;
-    justify-content: space-around;
-    align-items: center;
-  }
-
-  .mobile-nav-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-soft);
-    gap: 2px;
-  }
-
-  .mobile-nav-btn.active {
-    color: var(--accent);
+    padding: 0.75rem;
   }
 }
 
