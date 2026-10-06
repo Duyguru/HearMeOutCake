@@ -387,11 +387,17 @@
         }
 
         const data = await res.json();
-        // Token'ı localStorage'a kaydet
+        // Token ve veriyi localStorage'a kaydet
         if (data.creator_token) {
           localStorage.setItem(`cake_token_${data.cake.id}`, data.creator_token);
           if (data.cake.share_code) {
             localStorage.setItem(`cake_token_${data.cake.share_code}`, data.creator_token);
+          }
+        }
+        if (data.cake) {
+          localStorage.setItem(`cake_data_${data.cake.id}`, JSON.stringify(data.cake));
+          if (data.cake.share_code) {
+            localStorage.setItem(`cake_data_${data.cake.share_code}`, JSON.stringify(data.cake));
           }
         }
 

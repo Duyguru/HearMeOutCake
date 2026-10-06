@@ -91,10 +91,27 @@ class CakeEditorApp {
         this.state.isCreator = true;
       }
 
-      const data = await api.getCake(cakeIdOrCode);
-      this.state.cake = data.cake;
-      this.state.items = data.items || [];
-      this.state.isLocked = data.cake.is_locked || false;
+      let cakeData = null;
+      let cakeItems = [];
+
+      try {
+        const data = await api.getCake(cakeIdOrCode);
+        cakeData = data.cake;
+        cakeItems = data.items || [];
+      } catch (err) {
+        console.warn('API getCake error, using local fallback:', err);
+        const cached = localStorage.getItem(`cake_data_${cakeIdOrCode}`);
+        if (cached) {
+          cakeData = JSON.parse(cached);
+          cakeItems = [];
+        } else {
+          throw err;
+        }
+      }
+
+      this.state.cake = cakeData;
+      this.state.items = cakeItems;
+      this.state.isLocked = cakeData.is_locked || false;
 
       this.updateUI();
       this.renderer.setData({

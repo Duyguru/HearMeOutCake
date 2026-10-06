@@ -4,11 +4,13 @@ from api import db
 from api.schemas.cake import CakeCreate, CakeUpdate, CakeResponse
 from api.services.slices import calculate_slice_angles
 
-router = APIRouter(prefix="/api/cakes", tags=["cakes"])
+router = APIRouter(tags=["cakes"])
 
 
-@router.post("", response_model=dict)
-@router.post("/", response_model=dict)
+@router.post("/api/cakes", response_model=dict)
+@router.post("/api/cakes/", response_model=dict)
+@router.post("/cakes", response_model=dict)
+@router.post("/cakes/", response_model=dict)
 async def create_solo_cake(payload: CakeCreate):
     data = payload.model_dump()
     data["mode"] = "solo"
@@ -19,7 +21,8 @@ async def create_solo_cake(payload: CakeCreate):
     }
 
 
-@router.get("/gallery", response_model=List[CakeResponse])
+@router.get("/api/cakes/gallery", response_model=List[CakeResponse])
+@router.get("/cakes/gallery", response_model=List[CakeResponse])
 async def list_gallery_cakes(tokens: str = Query(default="")):
     token_list = [t.strip() for t in tokens.split(",") if t.strip()]
     if not token_list:
@@ -28,7 +31,8 @@ async def list_gallery_cakes(tokens: str = Query(default="")):
     return cakes
 
 
-@router.get("/id/{cake_id}")
+@router.get("/api/cakes/id/{cake_id}")
+@router.get("/cakes/id/{cake_id}")
 async def get_cake_by_id_endpoint(cake_id: str):
     cake = db.get_cake_by_id(cake_id)
     if not cake:
@@ -42,8 +46,11 @@ async def get_cake_by_id_endpoint(cake_id: str):
     }
 
 
-@router.get("/{share_code}")
+@router.get("/api/cakes/{share_code}")
+@router.get("/cakes/{share_code}")
 async def get_cake_by_share_code_endpoint(share_code: str):
+    if share_code == "gallery":
+        return await list_gallery_cakes()
     cake = db.get_cake_by_share_code(share_code)
     if not cake:
         # Fallback to id check if user passed id
@@ -60,7 +67,8 @@ async def get_cake_by_share_code_endpoint(share_code: str):
     }
 
 
-@router.patch("/{cake_id}")
+@router.patch("/api/cakes/{cake_id}")
+@router.patch("/cakes/{cake_id}")
 async def update_cake_settings(
     cake_id: str,
     payload: CakeUpdate,
@@ -87,7 +95,8 @@ async def update_cake_settings(
     return updated_cake
 
 
-@router.post("/{cake_id}/save")
+@router.post("/api/cakes/{cake_id}/save")
+@router.post("/cakes/{cake_id}/save")
 async def save_and_lock_cake(
     cake_id: str,
     x_creator_token: Optional[str] = Header(None, alias="X-Creator-Token"),
@@ -115,7 +124,8 @@ async def save_and_lock_cake(
     }
 
 
-@router.delete("/{cake_id}")
+@router.delete("/api/cakes/{cake_id}")
+@router.delete("/cakes/{cake_id}")
 async def delete_cake_endpoint(
     cake_id: str,
     x_creator_token: Optional[str] = Header(None, alias="X-Creator-Token"),
