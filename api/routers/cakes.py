@@ -8,6 +8,7 @@ router = APIRouter(prefix="/api/cakes", tags=["cakes"])
 
 
 @router.post("", response_model=dict)
+@router.post("/", response_model=dict)
 async def create_solo_cake(payload: CakeCreate):
     data = payload.model_dump()
     data["mode"] = "solo"
