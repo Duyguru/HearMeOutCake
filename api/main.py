@@ -43,34 +43,32 @@ app.include_router(rooms_router)
 app.include_router(items_router)
 app.include_router(uploads_router)
 
-# Statik dosya sunumu (Frontend)
-public_path = Path(__file__).resolve().parent.parent / "public"
+# Statik dosya sunumu (Yerel ortam için)
+if not os.environ.get("VERCEL"):
+    public_path = Path(__file__).resolve().parent.parent / "public"
 
-if public_path.exists():
-    # Doğrudan sayfa yönlendirmeleri
-    @app.get("/", include_in_schema=False)
-    async def serve_index():
-        return FileResponse(public_path / "index.html")
+    if public_path.exists():
+        @app.get("/", include_in_schema=False)
+        async def serve_index():
+            return FileResponse(public_path / "index.html")
 
-    @app.get("/editor", include_in_schema=False)
-    @app.get("/editor.html", include_in_schema=False)
-    async def serve_editor():
-        return FileResponse(public_path / "editor.html")
+        @app.get("/editor", include_in_schema=False)
+        @app.get("/editor.html", include_in_schema=False)
+        async def serve_editor():
+            return FileResponse(public_path / "editor.html")
 
-    @app.get("/join", include_in_schema=False)
-    @app.get("/join.html", include_in_schema=False)
-    async def serve_join():
-        return FileResponse(public_path / "join.html")
+        @app.get("/join", include_in_schema=False)
+        @app.get("/join.html", include_in_schema=False)
+        async def serve_join():
+            return FileResponse(public_path / "join.html")
 
-    @app.get("/gallery", include_in_schema=False)
-    @app.get("/gallery.html", include_in_schema=False)
-    async def serve_gallery():
-        return FileResponse(public_path / "gallery.html")
+        @app.get("/gallery", include_in_schema=False)
+        @app.get("/gallery.html", include_in_schema=False)
+        async def serve_gallery():
+            return FileResponse(public_path / "gallery.html")
 
-    # Uploads klasörünü doğrudan sun
-    uploads_dir = public_path / "uploads"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+        uploads_dir = public_path / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
+        app.mount("/", StaticFiles(directory=str(public_path), html=True), name="public_root")
 
-    # Diğer tüm statik dosyalar (css, js, assets)
-    app.mount("/", StaticFiles(directory=str(public_path), html=True), name="public_root")

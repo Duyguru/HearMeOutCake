@@ -1,12 +1,24 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" }
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/join", "dest": "/public/join.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/editor", "destination": "/public/editor.html" },
+    { "source": "/editor.html", "destination": "/public/editor.html" },
+    { "source": "/join", "destination": "/public/join.html" },
+    { "source": "/join.html", "destination": "/public/join.html" },
+    { "source": "/gallery", "destination": "/public/gallery.html" },
+    { "source": "/gallery.html", "destination": "/public/gallery.html" },
+    { "source": "/css/(.*)", "destination": "/public/css/$1" },
+    { "source": "/js/(.*)", "destination": "/public/js/$1" },
+    { "source": "/assets/(.*)", "destination": "/public/assets/$1" },
+    { "source": "/uploads/(.*)", "destination": "/public/uploads/$1" },
+    { "source": "/(.*)", "destination": "/public/$1" }
   ]
 }
